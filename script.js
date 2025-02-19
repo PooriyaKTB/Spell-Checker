@@ -1,10 +1,14 @@
 import words from './words.json' with { type: 'json' };
 
-let customDictionary = new Set(words); // Use a Set for faster lookups
+const customDictionary = new Set(words); // Use a Set for faster lookups
+
+// Cache DOM elements for reuse
+const inputTextArea = document.getElementById('input-text');
+const spellCheckButton = document.getElementById('spell-check-button');
+const messageDiv = document.getElementById('message');
 
 function checkSpelling() {
-  const inputText = document.getElementById('input-text').value;
-  const messageDiv = document.getElementById('message');
+  const inputText = inputTextArea.value;
   messageDiv.innerHTML = ''; // Clear previous messages
 
   // Split the input text into words, handling punctuation and hyphens
@@ -20,7 +24,7 @@ function checkSpelling() {
   wordList.forEach(word => {
     const lowerCaseWord = word.toLowerCase();
     if (!customDictionary.has(lowerCaseWord)) {
-      // Check if the word is a proper noun (starts with a capital letter)
+      // If the word is not in the dictionary and it is not a proper noun (starts with a capital letter)
       if (!/^[A-Z]/.test(word)) {
         misspelledWords.add(word);
       }
@@ -31,7 +35,7 @@ function checkSpelling() {
     const misspelledList = Array.from(misspelledWords).join(', ');
     messageDiv.innerHTML = `
       <p class="misspelled">Misspelled words: <span>${misspelledList}</span></p>
-      <button id="add-to-dictionary">Add to Dictionary</button>
+      <button id="add-to-dictionary" class="btn">Add to Dictionary</button>
     `;
 
     // Add event listener for the "Add to Dictionary" button
@@ -44,5 +48,20 @@ function checkSpelling() {
   }
 }
 
-// Attach the spell check function to the button
-document.getElementById('spell-check-button').addEventListener('click', checkSpelling);
+// Attach the spell check function to the "Check Spelling" button
+spellCheckButton.addEventListener('click', checkSpelling);
+
+// Disable the "Check Spelling" button when the input is empty
+
+// Function to update the button's enabled/disabled state based on input content
+function updateSpellCheckButtonState() {
+  spellCheckButton.disabled = inputTextArea.value.trim() === '';
+  // Clear any displayed warning message when the input changes
+  messageDiv.innerHTML = '';
+}
+
+// Initially update the button state on page load
+updateSpellCheckButtonState();
+
+// Update the button state on every input event in the textarea
+inputTextArea.addEventListener('input', updateSpellCheckButtonState);
